@@ -1,19 +1,26 @@
-d3.json("./static/js/samples.json").then( function (data) {
-    // console.log("data", data);
-    let names = data.names;
-    // console.log("names",names);
-    setNames(names);
-    let samples = data.samples;
-    // console.log("samples", samples);
-    // getTopOtus( samples ,samples[0]["id"])
-    // console.log("sample1name",samples[0]["id"])
-    makeGraph(data.samples[0])
-    makeBubbleChart(data.samples[0])
-    getValues(data.metadata[0])
-});
+
+function init() {
+    d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json").then( function (data) {
+        console.log("data", data);
+        let names = data.names;
+        setNames(names);
+        let samples = data.samples;
+        makeGraph(data.samples[0])
+        makeBubbleChart(data.samples[0])
+        getValues(data.metadata[0])
+        makeGuage(data.metadata[0].wfreq)
+    });
+};
+
+
+
+function getData(data) {
+    return data
+}
 
 function setNames(names) {
     let dropDown = d3.select("#selDataset");
+    
     for (i=0; i < names.length ; i++) {
         let addChoice = dropDown.append("option");
         addChoice.text(`${names[i]}`);
@@ -21,11 +28,7 @@ function setNames(names) {
 };
 
 function makeGraph(data) {
-    // let names = data.names;
-    // setNames(names)
-    // let samples = data.samples;
-    let [x,y, labels] = getTopOtus(data)
-    // console.log("x",x)
+    let [x, y, labels] = getTopOtus(data)
     let trace = {
         x: y,
         y: x,
@@ -52,19 +55,10 @@ function makeBubbleChart(data) {
             size: y,
             color: x
         },
-        showscale: true,
-        colorscale: 'Viridis'
+        showscale: true
     }
     let traceData = [trace]
-
-    let y_max = Math.max(y)
-    let y_min = Math.min(y)
-    let yavg = (y_max + y_min)/2
-
-    let x_max = Math.max(x)
-    let x_min = Math.min(x)
-    let xavg = ((x_max + x_min)-(x_max- x_min))
-    
+ 
 
     let layout = {
         xaxis: {
@@ -82,18 +76,31 @@ function optionChanged(value) {
     let dropdownMenu = value;
     // console.log("DropDownChange",dropdownMenu)
 
-    d3.json("./static/js/samples.json").then( function (data) {
+    d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json").then( function (data) {
         let samples = data.samples;
         let metadata = data.metadata;
         let id = samples.filter( samples => samples.id == dropdownMenu)
         let metaId = metadata.filter( metadata => metadata.id == dropdownMenu)
-        console.log("metaId", metaId[0])
         makeGraph(id[0])
+        // let [x, y, labels] = getTopOtus(id[0])
+        // let trace = [{
+        //     x: y,
+        //     y: x,
+        //     text: labels,
+        //     type: "bar",
+        //     orientation: "h"
+        // }]
+        // updatePlotly(trace)
         makeBubbleChart(id[0])
         getValues(metaId[0])
+        makeGuage(metaId[0].wfreq)
     });
   }
 
+// function updatePlotly(newdata) {
+//     console.log(newdata);
+//     Plotly.restyle("bar", "values", newdata[0]);
+// };
 
 function getTopOtus(id) {
     let otu_ids = id.otu_ids
@@ -117,6 +124,7 @@ function getTopOtus(id) {
     }
     top10otus.reverse()
     top10values.reverse()
+    top10labels.reverse()
     // console.log("top_otus", top10otus)
     // console.log("top10values", top10values)
     return [top10otus, top10values, top10labels]
@@ -147,13 +155,56 @@ function getValues(id) {
     
 }
 
-// let names = data.names;
+function makeGuage(data) {
+    var data = [
+        {
+          type: "indicator",
+          mode: "gauge+number",
+          value: data,
+          title: { text: "Belly Button Washing Frequency", font: { size: 24 } },
+          gauge: {
+            axis: { 
+                    range: [0,9],
+                    tickwidth: 1,
+                    tickcolor: "darkblue",
+                    tickmode: "array",
+                    tickvals: [0,1,2,3,4,5,6,7,8,9],
+                    ticktext: ["0","1","2","3","4","5","6","7","8","9"],
+                    showticklabels: true,
+                    ticklabels: "inside",
+                    tickfont: { color: "darkblue", size: 12 }
+                  },
+            bar: { color: "darkblue" },
+            pointer: { color: "darkblue" },
+            bgcolor: "white",
+            borderwidth: 2,
+            bordercolor: "gray",
+            steps: [
+              { range: [0, 1], color: "#D9EFFF" },
+              { range: [1, 2], color: "#B5DFFA" },
+              { range: [2, 3], color: "#8CC2F5" },
+              { range: [3, 4], color: "#62A5F0" },
+              { range: [4, 5], color: "#3E88EB" },
+              { range: [5, 6], color: "#256AE6" },
+              { range: [6, 7], color: "#1752C1" },
+              { range: [7, 8], color: "#103E99" },
+              { range: [8, 9], color: "#0B2D72" }
+            ],
+            labelFont: { size: 12 }
+          }
+        }
+      ];
+      
+      var layout = {
+        width: 500,
+        height: 400,
+        margin: { t: 25, r: 25, l: 25, b: 25 },
+        font: { color: "darkblue", family: "Arial" }
+      };
+    Plotly.newPlot('gauge', data, layout);
+}
 
-// console.log("names",names);
-
-// let metadata = jsonData.metadata;
-// let samples = jsonData.samples;
 
 
-
+init();
 
