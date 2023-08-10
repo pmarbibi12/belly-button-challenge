@@ -1,52 +1,53 @@
 
+//initialize func
 function init() {
+    //read in json data from URL or change to local json file
     d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json").then( function (data) {
-        console.log("data", data);
-        let names = data.names;
-        setNames(names);
-        let samples = data.samples;
-        makeGraph(data.samples[0])
-        makeBubbleChart(data.samples[0])
-        getValues(data.metadata[0])
-        makeGuage(data.metadata[0].wfreq)
+        setNames(data.names); // function to set dropdown values
+        makeGraph(data.samples[0]) // function to create bar graph of the first choice
+        makeBubbleChart(data.samples[0]) // function to create bubble graph of the first choice
+        getValues(data.metadata[0]) // function to set metadata values in the demographic info panel
+        makeGuage(data.metadata[0].wfreq) // function to create the gauge chart
     });
 };
 
-
-
-function getData(data) {
-    return data
-}
-
+//creates the dropdown choices
 function setNames(names) {
+    //select the dropDown for editing
     let dropDown = d3.select("#selDataset");
-    
+    //loop through values and append as choices
     for (i=0; i < names.length ; i++) {
         let addChoice = dropDown.append("option");
         addChoice.text(`${names[i]}`);
     }
 };
 
+//creates a horizontal bar graph
 function makeGraph(data) {
-    let [x, y, labels] = getTopOtus(data)
-    let trace = {
+    let [x, y, labels] = getTopOtus(data) // call function to get only the top 10 otu data
+    //set trace data
+    let traceData = [{
         x: y,
         y: x,
         text: labels,
         type: "bar",
         orientation: "h"
-    }
-    let traceData = [trace]
+    }]
+    //set layout
     let layout = {
-        title: "Top 10 OTUs"
+        margin: { t: 50, r: 25, l: 100, b: 50 },
+        title: { text: "Top OTUs"}
     }
-    Plotly.newPlot("bar", traceData, layout);  
+    Plotly.newPlot("bar", traceData, layout); //create plot and assign to bar class
 }
 
+//creates a bubble graph
 function makeBubbleChart(data) {
+    //set variables to data values
     let x = data.otu_ids
     let y = data.sample_values
-    let trace = {
+    //set trace data
+    let trace = [{
         x: x,
         y: y,
         text: data.otu_labels,
@@ -56,83 +57,98 @@ function makeBubbleChart(data) {
             color: x
         },
         showscale: true
-    }
-    let traceData = [trace]
- 
-
+    }]
+    //set layout
     let layout = {
         xaxis: {
-            title: "OTU IDs"
+            title: "OTU IDs",
+            margin: { t: 0, r: 25, l: 100, b: 50 },
         }
     }
-
-    Plotly.newPlot("bubble", traceData, layout);  
-
+    Plotly.newPlot("bubble", trace, layout);  //create plot and assign to bubble class
 }
 
-
+//function to update graphs and values based on choice selected
 function optionChanged(value) {
-    // Use D3 to select the dropdown menu
+    //get value and set to a variable
     let dropdownMenu = value;
-    // console.log("DropDownChange",dropdownMenu)
-
+    //re-read the data to get appropriate values
     d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json").then( function (data) {
         let samples = data.samples;
         let metadata = data.metadata;
+        //filter for values
         let id = samples.filter( samples => samples.id == dropdownMenu)
         let metaId = metadata.filter( metadata => metadata.id == dropdownMenu)
-        makeGraph(id[0])
-        // let [x, y, labels] = getTopOtus(id[0])
-        // let trace = [{
-        //     x: y,
-        //     y: x,
-        //     text: labels,
-        //     type: "bar",
-        //     orientation: "h"
-        // }]
-        // updatePlotly(trace)
-        makeBubbleChart(id[0])
+        //update values in Demographic Info with new metadata values
         getValues(metaId[0])
-        makeGuage(metaId[0].wfreq)
+        //update plots
+        updatePlotly(id[0],metaId[0])
     });
   }
 
-// function updatePlotly(newdata) {
-//     console.log(newdata);
-//     Plotly.restyle("bar", "values", newdata[0]);
-// };
+//function to update plot data
+function updatePlotly(sampleData, metaData) {
+    //assign new values for bubble graph
+    let bubbleData = {
+        x: [sampleData.otu_ids],
+        y: [sampleData.sample_values],
+        text: [sampleData.otu_labels]
+    }
+    //get top 10 otu data
+    let [x, y, labels] = getTopOtus(sampleData)
+    //assign new values for h.bar graph
+    let barData = {
+        x: [y],
+        y: [x],
+        text: [labels]
+    }
+    //assign new value for gauge
+    let  gaugeData=  {
+        value: [metaData.wfreq]
+    }
+    //restyle the plots
+    Plotly.restyle("bubble",  bubbleData, [0]);
+    Plotly.restyle("bar", barData, [0]);
+    Plotly.restyle("gauge", gaugeData, [0]);
+};
 
+//function to get top 10 otu data
 function getTopOtus(id) {
-    let otu_ids = id.otu_ids
-    // console.log("otuIds1",Array.isArray(otu_ids))
+    let otu_ids = id.otu_ids //set otu_ids to a variable
+    //declare arrays
     let top10otus = []
     let top10values = []
     let top10labels = []
+    //if size of otu_ids is bigger than 10, only get the top 10
     if (otu_ids.length > 10) {
         for (i = 0; i < 10; i++) {
+            //append values to arrays
             top10otus.push(`OTU ${otu_ids[i]}`)
             top10values.push(id.sample_values[i])
             top10labels.push(id.otu_labels[i])
         }
-    }
+    }  //otherwise, get all the data
     else {
         for (i = 0; i < otu_ids.length; i++) {
+            //append values to arrays
             top10otus.push(`OTU ${otu_ids[i]}`)
             top10values.push(id.sample_values[i])
             top10labels.push(id.otu_labels[i])
         }
     }
+    //reverse arrays to pass to h.bar chart
     top10otus.reverse()
     top10values.reverse()
     top10labels.reverse()
-    // console.log("top_otus", top10otus)
-    // console.log("top10values", top10values)
+    //return values
     return [top10otus, top10values, top10labels]
 };
 
+//function to assign text to Demographic Info Panel
 function getValues(id) {
+    //select the panel body for edits
     let panelBody = d3.select("#sample-metadata")
-
+    //assign new values only if empty
     if (d3.select("#metaId").empty()) {
         panelBody.append('p').text(`id: ${id.id}`).attr('id', "metaId")   
         panelBody.append('p').text(`ethnicity: ${id.ethnicity}`).attr('id', "metaEth")
@@ -141,7 +157,7 @@ function getValues(id) {
         panelBody.append('p').text(`location: ${id.location}`).attr('id', "metaLoc")
         panelBody.append('p').text(`bbtype: ${id.bbtype}`).attr('id', "metaBbt")
         panelBody.append('p').text(`wfreq: ${id.wfreq}`).attr('id', "metaWfr")     
-    }
+    } //otherwise, replace the values
     else {
         d3.select("#metaId").text(`id: ${id.id}`)
         d3.select("#metaEth").text(`ethnicity: ${id.ethnicity}`)
@@ -150,18 +166,41 @@ function getValues(id) {
         d3.select("#metaLoc").text(`location: ${id.location}`)
         d3.select("#metaBbt").text(`bbtype: ${id.bbtype}`)
         d3.select("#metaWfr").text(`wfreq: ${id.wfreq}`)
-
-    }
-    
+    }  
 }
 
+//function to create gauge
 function makeGuage(data) {
-    var data = [
-        {
+    //colors values to be used --blue shades
+    let colors = [
+        "#D9EFFF", 
+        "#B5DFFA",
+        "#8CC2F5", 
+        "62A5F0", 
+        "3E88EB", 
+        "256AE6", 
+        "1752C1", 
+        "103E99", 
+        "0B2D72"
+    ]
+    //color values to be used --pink shades
+    pink_color_gradient = [
+        "#FF82C7",  //# Hot Pink
+        "#FF87C7",  //# Bright Pink
+        "#FF8CC7",  //# Pink
+        "#FF91C7",  //# Light Pink
+        "#FF96C7",  //# Pale Pink
+        "#FF9BC7", // # Baby Pink
+        "#FFA0C7", // # Pastel Pink
+        "#FFA5C7", // # Soft Pink
+        "#FFAAC7"  // # Very Light Pink
+    ].reverse() 
+    //assign gaugeData
+    let guageData = [{
           type: "indicator",
           mode: "gauge+number",
           value: data,
-          title: { text: "Belly Button Washing Frequency", font: { size: 24 } },
+          title: { text: "Scrubs per Week", font: { size: 20} },
           gauge: {
             axis: { 
                     range: [0,9],
@@ -174,37 +213,38 @@ function makeGuage(data) {
                     ticklabels: "inside",
                     tickfont: { color: "darkblue", size: 12 }
                   },
-            bar: { color: "darkblue" },
-            pointer: { color: "darkblue" },
-            bgcolor: "white",
+            bar: { 
+                color: pink_color_gradient[data-1] //gauge bar will change colors depending on data value
+            },
             borderwidth: 2,
-            bordercolor: "gray",
-            steps: [
-              { range: [0, 1], color: "#D9EFFF" },
-              { range: [1, 2], color: "#B5DFFA" },
-              { range: [2, 3], color: "#8CC2F5" },
-              { range: [3, 4], color: "#62A5F0" },
-              { range: [4, 5], color: "#3E88EB" },
-              { range: [5, 6], color: "#256AE6" },
-              { range: [6, 7], color: "#1752C1" },
-              { range: [7, 8], color: "#103E99" },
-              { range: [8, 9], color: "#0B2D72" }
+            bordercolor: "black",
+            steps: [ //assign shades of blue to steps
+              { range: [0, 1], color: colors[0] },
+              { range: [1, 2], color: colors[1] },
+              { range: [2, 3], color: colors[2] },
+              { range: [3, 4], color: colors[3] },
+              { range: [4, 5], color: colors[4] },
+              { range: [5, 6], color: colors[5] },
+              { range: [6, 7], color: colors[6] },
+              { range: [7, 8], color: colors[7] },
+              { range: [8, 9], color: colors[8] }
             ],
-            labelFont: { size: 12 }
+            labelFont: { size: 15 }
           }
-        }
-      ];
-      
-      var layout = {
+        }];
+      //set layout of gauge
+      let layout = {
+        title: { text: "Belly Button Washing Frequency", font: { size: 30}},
         width: 500,
         height: 400,
-        margin: { t: 25, r: 25, l: 25, b: 25 },
+        margin: { t: 50, r: 25, l: 25, b: 10 },
         font: { color: "darkblue", family: "Arial" }
       };
-    Plotly.newPlot('gauge', data, layout);
+    //plot gauge to gauge class
+    Plotly.newPlot('gauge', guageData, layout);
 }
 
 
-
+//initialize page
 init();
 
