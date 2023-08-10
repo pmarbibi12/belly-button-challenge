@@ -4,10 +4,10 @@ function init() {
     //read in json data from URL or change to local json file
     d3.json("https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json").then( function (data) {
         setNames(data.names); // function to set dropdown values
-        makeGraph(data.samples[0]) // function to create bar graph of the first choice
-        makeBubbleChart(data.samples[0]) // function to create bubble graph of the first choice
-        getValues(data.metadata[0]) // function to set metadata values in the demographic info panel
-        makeGuage(data.metadata[0].wfreq) // function to create the gauge chart
+        makeGraph(data.samples[0]); // function to create bar graph of the first choice
+        makeBubbleChart(data.samples[0]); // function to create bubble graph of the first choice
+        getValues(data.metadata[0]); // function to set metadata values in the demographic info panel
+        makeGuage(data.metadata[0].wfreq); // function to create the gauge chart
     });
 };
 
@@ -19,7 +19,7 @@ function setNames(names) {
     for (i=0; i < names.length ; i++) {
         let addChoice = dropDown.append("option");
         addChoice.text(`${names[i]}`);
-    }
+    };
 };
 
 //creates a horizontal bar graph
@@ -32,20 +32,20 @@ function makeGraph(data) {
         text: labels,
         type: "bar",
         orientation: "h"
-    }]
+    }];
     //set layout
     let layout = {
         margin: { t: 50, r: 25, l: 100, b: 50 },
         title: { text: "Top OTUs"}
-    }
+    };
     Plotly.newPlot("bar", traceData, layout); //create plot and assign to bar class
-}
+};
 
 //creates a bubble graph
 function makeBubbleChart(data) {
     //set variables to data values
-    let x = data.otu_ids
-    let y = data.sample_values
+    let x = data.otu_ids;
+    let y = data.sample_values;
     //set trace data
     let trace = [{
         x: x,
@@ -57,16 +57,16 @@ function makeBubbleChart(data) {
             color: x
         },
         showscale: true
-    }]
+    }];
     //set layout
     let layout = {
         xaxis: {
             title: "OTU IDs",
             margin: { t: 0, r: 25, l: 100, b: 50 },
         }
-    }
+    };
     Plotly.newPlot("bubble", trace, layout);  //create plot and assign to bubble class
-}
+};
 
 //function to update graphs and values based on choice selected
 function optionChanged(value) {
@@ -77,14 +77,14 @@ function optionChanged(value) {
         let samples = data.samples;
         let metadata = data.metadata;
         //filter for values
-        let id = samples.filter( samples => samples.id == dropdownMenu)
-        let metaId = metadata.filter( metadata => metadata.id == dropdownMenu)
+        let id = samples.filter( samples => samples.id == dropdownMenu);
+        let metaId = metadata.filter( metadata => metadata.id == dropdownMenu);
         //update values in Demographic Info with new metadata values
-        getValues(metaId[0])
+        getValues(metaId[0]);
         //update plots
-        updatePlotly(id[0],metaId[0])
+        updatePlotly(id[0],metaId[0]);
     });
-  }
+  };
 
 //function to update plot data
 function updatePlotly(sampleData, metaData) {
@@ -93,19 +93,19 @@ function updatePlotly(sampleData, metaData) {
         x: [sampleData.otu_ids],
         y: [sampleData.sample_values],
         text: [sampleData.otu_labels]
-    }
+    };
     //get top 10 otu data
-    let [x, y, labels] = getTopOtus(sampleData)
+    let [x, y, labels] = getTopOtus(sampleData);
     //assign new values for h.bar graph
     let barData = {
         x: [y],
         y: [x],
         text: [labels]
-    }
+    };
     //assign new value for gauge
     let  gaugeData=  {
         value: [metaData.wfreq]
-    }
+    };
     //restyle the plots
     Plotly.restyle("bubble",  bubbleData, [0]);
     Plotly.restyle("bar", barData, [0]);
@@ -116,38 +116,38 @@ function updatePlotly(sampleData, metaData) {
 function getTopOtus(id) {
     let otu_ids = id.otu_ids //set otu_ids to a variable
     //declare arrays
-    let top10otus = []
-    let top10values = []
-    let top10labels = []
+    let top10otus = [];
+    let top10values = [];
+    let top10labels = [];
     //if size of otu_ids is bigger than 10, only get the top 10
     if (otu_ids.length > 10) {
         for (i = 0; i < 10; i++) {
             //append values to arrays
-            top10otus.push(`OTU ${otu_ids[i]}`)
-            top10values.push(id.sample_values[i])
-            top10labels.push(id.otu_labels[i])
+            top10otus.push(`OTU ${otu_ids[i]}`);
+            top10values.push(id.sample_values[i]);
+            top10labels.push(id.otu_labels[i]);
         }
     }  //otherwise, get all the data
     else {
         for (i = 0; i < otu_ids.length; i++) {
             //append values to arrays
-            top10otus.push(`OTU ${otu_ids[i]}`)
-            top10values.push(id.sample_values[i])
-            top10labels.push(id.otu_labels[i])
+            top10otus.push(`OTU ${otu_ids[i]}`);
+            top10values.push(id.sample_values[i]);
+            top10labels.push(id.otu_labels[i]);
         }
-    }
+    };
     //reverse arrays to pass to h.bar chart
-    top10otus.reverse()
-    top10values.reverse()
-    top10labels.reverse()
+    top10otus.reverse();
+    top10values.reverse();
+    top10labels.reverse();
     //return values
-    return [top10otus, top10values, top10labels]
+    return [top10otus, top10values, top10labels];
 };
 
 //function to assign text to Demographic Info Panel
 function getValues(id) {
     //select the panel body for edits
-    let panelBody = d3.select("#sample-metadata")
+    let panelBody = d3.select(".panel-body");
     //assign new values only if empty
     if (d3.select("#metaId").empty()) {
         panelBody.append('p').text(`id: ${id.id}`).attr('id', "metaId")   
@@ -156,7 +156,7 @@ function getValues(id) {
         panelBody.append('p').text(`age: ${id.age}`).attr('id', "metaAge")
         panelBody.append('p').text(`location: ${id.location}`).attr('id', "metaLoc")
         panelBody.append('p').text(`bbtype: ${id.bbtype}`).attr('id', "metaBbt")
-        panelBody.append('p').text(`wfreq: ${id.wfreq}`).attr('id', "metaWfr")     
+        panelBody.append('p').text(`wfreq: ${id.wfreq}`).attr('id', "metaWfr")
     } //otherwise, replace the values
     else {
         d3.select("#metaId").text(`id: ${id.id}`)
@@ -166,8 +166,8 @@ function getValues(id) {
         d3.select("#metaLoc").text(`location: ${id.location}`)
         d3.select("#metaBbt").text(`bbtype: ${id.bbtype}`)
         d3.select("#metaWfr").text(`wfreq: ${id.wfreq}`)
-    }  
-}
+    };  
+};
 
 //function to create gauge
 function makeGuage(data) {
@@ -182,7 +182,7 @@ function makeGuage(data) {
         "1752C1", 
         "103E99", 
         "0B2D72"
-    ]
+    ];
     //color values to be used --pink shades
     pink_color_gradient = [
         "#FF82C7",  //# Hot Pink
@@ -194,7 +194,7 @@ function makeGuage(data) {
         "#FFA0C7", // # Pastel Pink
         "#FFA5C7", // # Soft Pink
         "#FFAAC7"  // # Very Light Pink
-    ].reverse() 
+    ].reverse(); 
     //assign gaugeData
     let guageData = [{
           type: "indicator",
@@ -230,7 +230,7 @@ function makeGuage(data) {
               { range: [8, 9], color: colors[8] }
             ],
             labelFont: { size: 15 }
-          }
+          };
         }];
       //set layout of gauge
       let layout = {
@@ -242,7 +242,7 @@ function makeGuage(data) {
       };
     //plot gauge to gauge class
     Plotly.newPlot('gauge', guageData, layout);
-}
+};
 
 
 //initialize page
