@@ -230,7 +230,7 @@ function makeGuage(data) {
               { range: [8, 9], color: colors[8] }
             ],
             labelFont: { size: 15 }
-          };
+          }
         }];
       //set layout of gauge
       let layout = {
