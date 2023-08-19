@@ -12,6 +12,7 @@ by Panfilo Marbibi
 # Summary
 - an interactive dashboard to explore the Belly Button Biodiversity dataset, which catalogs the microbes that colonize human navels.
 - app.js uses the D3 library to read the JSON file from the URL "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json" and uses the data to fill in the choices for the drop-down menu as well as create graphs/plots to visualize and represent the data.
+- "https://pmarbibi12.github.io/belly-button-challenge/"
 
 
 # functions
