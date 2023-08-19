@@ -54,7 +54,9 @@ function makeBubbleChart(data) {
         mode: "markers",
         marker: {
             size: y,
-            color: x
+            color: x.map(function(i) {
+                return '#' + i;
+            })
         },
         showscale: true
     }];
